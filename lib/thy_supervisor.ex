@@ -17,6 +17,10 @@ defmodule ThySupervisor do
     GenServer.call(supervisor, {:terminate_child, pid})
   end
 
+  def restart_child(supervisor, pid, child_spec) when is_pid(pid) do
+    GenServer.call(supervisor, {:restart_child, pid, child_spec})
+  end
+
   ######################
   # Callback Functions #
   ######################
@@ -51,6 +55,27 @@ defmodule ThySupervisor do
 
       :error ->
         {:reply, {:error, "error terminating child"}, state}
+    end
+  end
+
+  def handle_call({:restart_child, old_pid, child_spec}, _from, state) do
+    case Map.fetch(state, old_pid) do
+      {:ok, _child_spec} ->
+        case restart_child(old_pid, child_spec) do
+          {:ok, {pid, child_spec}} ->
+            new_state =
+              state
+              |> Map.delete(old_pid)
+              |> Map.put(pid, child_spec)
+
+            {:reply, {:ok, pid}, new_state}
+
+          :error ->
+            {:reply, {:error, "error restarting child"}, state}
+        end
+
+      _ ->
+        {:reply, :ok, state}
     end
   end
 
@@ -89,5 +114,21 @@ defmodule ThySupervisor do
   defp terminate_child(pid) do
     Process.exit(pid, :kill)
     :ok
+  end
+
+  defp restart_child(pid, child_spec) do
+    case terminate_child(pid) do
+      :ok ->
+        case start_child(child_spec) do
+          {:ok, new_pid} ->
+            {:ok, {new_pid, child_spec}}
+
+          :error ->
+            :error
+        end
+
+      :error ->
+        :error
+    end
   end
 end
