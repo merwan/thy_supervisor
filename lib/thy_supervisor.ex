@@ -95,11 +95,6 @@ defmodule ThySupervisor do
     {:reply, state, state}
   end
 
-  def terminate(_reason, state) do
-    terminate_children(state)
-    :ok
-  end
-
   def handle_info({:EXIT, from, :normal}, state) do
     new_state = state |> Map.delete(from)
     {:noreply, new_state}
@@ -129,6 +124,11 @@ defmodule ThySupervisor do
       _ ->
         {:noreply, new_state}
     end
+  end
+
+  def terminate(_reason, state) do
+    terminate_children(state)
+    :ok
   end
 
   #####################
