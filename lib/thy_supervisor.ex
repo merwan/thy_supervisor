@@ -102,7 +102,7 @@ defmodule ThySupervisor do
 
   def handle_info({:EXIT, from, :killed}, state) do
     new_state = state |> Map.delete(from)
-    {:reply, new_state}
+    {:noreply, new_state}
   end
 
   def handle_info({:EXIT, old_pid, _reason}, state) do
