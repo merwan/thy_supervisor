@@ -95,6 +95,11 @@ defmodule ThySupervisor do
     {:reply, state, state}
   end
 
+  def terminate(_reason, state) do
+    terminate_children(state)
+    :ok
+  end
+
   def handle_info({:EXIT, from, :killed}, state) do
     new_state = state |> Map.delete(from)
     {:reply, new_state}
@@ -146,5 +151,11 @@ defmodule ThySupervisor do
       :error ->
         :error
     end
+  end
+
+  defp terminate_children([]), do: :ok
+
+  defp terminate_children(child_specs) do
+    child_specs |> Enum.each(fn {pid, _} -> terminate_child(pid) end)
   end
 end
