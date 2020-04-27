@@ -122,7 +122,7 @@ defmodule ThySupervisor do
         end
 
       _ ->
-        {:noreply, new_state}
+        {:noreply, state}
     end
   end
 
